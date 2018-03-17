@@ -1,0 +1,77 @@
+{# Automatically extends the right outer layout and also handles AJAX siutations #}
+{% extends data.outerLayout %}
+
+{% block title %}
+  {# Create a useful, SEO-friendly title tag based on what we have #}
+  {% if data.piece %}
+    {{ data.piece.title }}
+  {% elseif data.page %}
+    {{ data.page.title }}
+  {% else %}
+    {{ apos.log('Looks like you forgot to override the title block in a template that does not have access to an Apostrophe page or piece.') }}
+  {% endif %}
+{% endblock %}
+
+{% block extraHead %}
+  {#
+    This block outputs its contents in the HTML document's <head>.
+    It is a good place to put extra <script> <link> and <meta> tags.
+  #}
+{% endblock %}
+
+{% block beforeMain %}
+  {#
+    We recommend you use the beforeMain block for global page components
+    like headers or navigation.
+  #}
+  <div class="locales">
+    {% for localization in apos.workflow.localizations() %}
+      <h4>
+        {% if (data.locale | replace('-draft', '')) == localization.workflowLocale %}
+          {{ localization.label }}
+        {% else %}
+          <a href="{{ localization._url | build({ workflowLocale: localization.workflowLocale }) }}">{{ localization.label }}</a></h4>
+        {% endif %}
+    {% endfor %}
+  </div>
+  <div class="personas">
+    <h2>Switch Persona</h2>
+    {% set apparentPersona = data.persona or data.urlPersona or 'car' %}
+    {% for persona in apos.modules['apostrophe-personas'].personas() %}
+      {% if data.page and not apos.pages.suitsPersona(data.page, persona.name) %}
+        <h4 class="apos-persona-{{ persona.name }} {% if (apparentPersona == persona.name) %}apos-persona-current{% endif %}"><a href="{{ '/' | build({ persona: persona.name }) }}">{{ persona.label }}</a></h4>
+      {% else %}
+        <h4 class="apos-persona-{{ persona.name }} {% if (apparentPersona == persona.name) %}apos-persona-current{% endif %}"><a href="{{ data.url | build({ persona: persona.name }) }}">{{ persona.label }}</a></h4>
+      {% endif %}
+    {% endfor %}
+  </div>
+  <h1>{{ data.page.title }}</h1>
+  <div class="internal-links">
+    <h2>Child Page Navigation Links</h2>
+    {% for page in data.home._children %}
+      <h4><a href="{{ page._url }}">{{ page.title }}</a></h4>
+    {% endfor %}
+    <h2>Hardcoded Test Links</h2>
+    <h4><a href="/">Internal link to default homepage (locale not in URL)</a></h4>
+    <h4><a href="/en">EN: Internal link to generic homepage</a></h4>
+    <h4><a href="/en/car/">EN: Internal link to car homepage</a></h4>
+    <h4><a href="/en/truck/">EN: Internal link to truck homepage</a></h4>
+    <h4><a href="/fr">FR: Internal link to generic homepage</a></h4>
+    <h4><a href="/fr/auto/">FR: Internal link to car homepage</a></h4>
+    <h4><a href="/fr/camion/">FR: Internal link to truck homepage</a></h4>
+  </div>
+{% endblock %}
+
+{% block main %}
+  {#
+    Usually, your page templates in the apostrophe-pages module will override
+    this block. It is safe to assume this is where your page-specific content
+    should go.
+  #}
+{% endblock %}
+
+{% block afterMain %}
+  {#
+    This would be a great place to put a global footer.
+  #}
+{% endblock %}
